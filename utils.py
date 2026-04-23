@@ -57,6 +57,8 @@ def apply_filters(df, stations, start_date, end_date):
 
 def prepare_model_dataset(df):
     model_df = df.copy()
+
+    # Step 1: sort within station so lag features are created correctly
     model_df = model_df.sort_values(["station", "datetime"]).reset_index(drop=True)
 
     model_df["PM2.5_next_hour"] = model_df.groupby("station", observed=True)["PM2.5"].shift(-1)
@@ -71,6 +73,11 @@ def prepare_model_dataset(df):
     model_df["WSPM_lag1"] = model_df.groupby("station", observed=True)["WSPM"].shift(1)
 
     model_df = model_df.dropna().reset_index(drop=True)
+
+    # Step 2: re-sort by time before splitting,
+    # so test data includes all stations in the final period
+    model_df = model_df.sort_values(["datetime", "station"]).reset_index(drop=True)
+
     return model_df
 
 

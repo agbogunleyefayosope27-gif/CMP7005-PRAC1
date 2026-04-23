@@ -14,6 +14,7 @@ This interactive application presents the outputs from the Beijing air-quality a
 ### Sections
 - **Dataset**: inspect, filter, summarise, and download the cleaned dataset
 - **Visualisations**: explore key trends, comparisons, and relationships in the data
+- **Model Outputs**: review model performance, diagnostics, and feature importance
 
 Use the navigation menu on the left to move between sections.
 """
@@ -32,4 +33,4 @@ st.markdown(
 """
 )
 
-st.success("Task 4 Part 1 includes the Dataset and Visualisations pages.")
+st.success("The application now includes Dataset, Visualisations, and Model Outputs pages.")

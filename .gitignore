@@ -1,0 +1,29 @@
+# Document files
+*.pdf
+*.docx
+*.doc
+*.rtf
+
+@"
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Streamlit
+.streamlit/
+
+# Model/data outputs you do not want tracked
+*.joblib
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Environment
+.venv/
+env/
+"@ | Set-Content .gitignore

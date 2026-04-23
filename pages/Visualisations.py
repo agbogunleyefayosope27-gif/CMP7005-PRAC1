@@ -37,6 +37,10 @@ else:
 
 filtered_df = apply_filters(df, selected_stations, start_date, end_date)
 
+if filtered_df.empty:
+    st.warning("No data available for the selected filters.")
+    st.stop()
+
 chart_option = st.selectbox(
     "Choose a visualisation",
     [
@@ -44,13 +48,14 @@ chart_option = st.selectbox(
         "Monthly PM2.5 trend by station",
         "Seasonal mean PM2.5 by station",
         "Weekday vs weekend PM2.5",
-        "Correlation heatmap"
+        "Correlation heatmap",
+        "PM2.5 distribution",
+        "Pollutant boxplots by station",
+        "Hourly PM2.5 pattern by station",
+        "PM2.5 vs temperature",
+        "NO2 vs O3"
     ]
 )
-
-if filtered_df.empty:
-    st.warning("No data available for the selected filters.")
-    st.stop()
 
 if chart_option == "Mean pollutant concentrations by station":
     station_pollution = (
@@ -74,6 +79,7 @@ if chart_option == "Mean pollutant concentrations by station":
     for container in ax.containers:
         ax.bar_label(container, fmt="%.1f", fontsize=8, padding=2)
 
+    plt.tight_layout()
     st.pyplot(fig)
 
 elif chart_option == "Monthly PM2.5 trend by station":
@@ -89,6 +95,7 @@ elif chart_option == "Monthly PM2.5 trend by station":
     ax.set_title("Monthly Average PM2.5 by Station")
     ax.set_xlabel("Month")
     ax.set_ylabel("Average PM2.5")
+    plt.tight_layout()
     st.pyplot(fig)
 
 elif chart_option == "Seasonal mean PM2.5 by station":
@@ -107,6 +114,7 @@ elif chart_option == "Seasonal mean PM2.5 by station":
     for container in ax.containers:
         ax.bar_label(container, fmt="%.1f", fontsize=8, padding=2)
 
+    plt.tight_layout()
     st.pyplot(fig)
 
 elif chart_option == "Weekday vs weekend PM2.5":
@@ -127,6 +135,7 @@ elif chart_option == "Weekday vs weekend PM2.5":
     for container in ax.containers:
         ax.bar_label(container, fmt="%.1f", fontsize=8, padding=2)
 
+    plt.tight_layout()
     st.pyplot(fig)
 
 elif chart_option == "Correlation heatmap":
@@ -136,4 +145,66 @@ elif chart_option == "Correlation heatmap":
     fig, ax = plt.subplots(figsize=(10, 8))
     sns.heatmap(corr, annot=True, fmt=".2f", cmap="coolwarm", square=True, ax=ax)
     ax.set_title("Correlation Heatmap")
+    plt.tight_layout()
+    st.pyplot(fig)
+
+elif chart_option == "PM2.5 distribution":
+    fig, ax = plt.subplots(figsize=(10, 5))
+    sns.histplot(data=filtered_df, x="PM2.5", hue="station", bins=40, kde=True, ax=ax, element="step")
+    ax.set_title("PM2.5 Distribution by Station")
+    ax.set_xlabel("PM2.5")
+    ax.set_ylabel("Frequency")
+    plt.tight_layout()
+    st.pyplot(fig)
+
+elif chart_option == "Pollutant boxplots by station":
+    pollutant_choice = st.selectbox(
+        "Select pollutant for boxplot",
+        ["PM2.5", "PM10", "NO2", "O3"]
+    )
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    sns.boxplot(data=filtered_df, x="station", y=pollutant_choice, ax=ax)
+    ax.set_title(f"{pollutant_choice} by Station")
+    ax.set_xlabel("Station")
+    ax.set_ylabel(pollutant_choice)
+    plt.xticks(rotation=20)
+    plt.tight_layout()
+    st.pyplot(fig)
+
+elif chart_option == "Hourly PM2.5 pattern by station":
+    hourly_pm25 = (
+        filtered_df.groupby(["station", "hour"], observed=True)["PM2.5"]
+        .mean()
+        .reset_index()
+    )
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+    sns.lineplot(data=hourly_pm25, x="hour", y="PM2.5", hue="station", marker="o", ax=ax)
+    ax.set_title("Average Hourly PM2.5 Pattern by Station")
+    ax.set_xlabel("Hour of Day")
+    ax.set_ylabel("Average PM2.5")
+    plt.tight_layout()
+    st.pyplot(fig)
+
+elif chart_option == "PM2.5 vs temperature":
+    sample_df = filtered_df.sample(min(5000, len(filtered_df)), random_state=42)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sns.scatterplot(data=sample_df, x="TEMP", y="PM2.5", hue="station", alpha=0.5, ax=ax)
+    ax.set_title("PM2.5 vs Temperature")
+    ax.set_xlabel("Temperature")
+    ax.set_ylabel("PM2.5")
+    plt.tight_layout()
+    st.pyplot(fig)
+
+elif chart_option == "NO2 vs O3":
+    sample_df = filtered_df.sample(min(5000, len(filtered_df)), random_state=42)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    sns.scatterplot(data=sample_df, x="NO2", y="O3", hue="station", alpha=0.5, ax=ax)
+    ax.set_title("NO2 vs O3")
+    ax.set_xlabel("NO2")
+    ax.set_ylabel("O3")
+    plt.tight_layout()
     st.pyplot(fig)
